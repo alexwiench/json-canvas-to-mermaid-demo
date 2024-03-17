@@ -1,7 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import CloseIcon from '@/components/CloseIcon';
+import { useState, useEffect, useRef } from 'react';
 
 import { HexColorPicker } from 'react-colorful';
 import generateMermaidFlowchart from 'json-canvas-to-mermaid';
@@ -21,11 +22,14 @@ export default function Home() {
 		6: '#a882ff', // purple
 	});
 	const [selectedColorIndex, setSelectedColorIndex] = useState(null);
+	const [isFlowchartGenerated, setIsFlowchartGenerated] = useState(false);
+	const colorPickerRefs = useRef({});
 
 	const convertToMermaid = (jsonData) => {
 		// const hierarchicalData = buildJsonCanvasHierarchy(jsonData);
 		const mermaid = generateMermaidFlowchart(jsonData, customColors);
 		setMermaidFlowchart(mermaid);
+		setIsFlowchartGenerated(true);
 	};
 
 	const handleFileProcess = (file) => {
@@ -82,135 +86,253 @@ export default function Home() {
 			...prevColors,
 			[colorIndex]: newColor,
 		}));
+		setIsFlowchartGenerated(false);
 	};
 
-	const handleCopyHex = (hex) => {
-		navigator.clipboard.writeText(hex).then(() => {
-			alert('Color copied to clipboard!');
-		});
+	useEffect(() => {
+		const handleOutsideClick = (event) => {
+			if (
+				selectedColorIndex !== null &&
+				colorPickerRefs.current[selectedColorIndex] &&
+				!colorPickerRefs.current[selectedColorIndex].contains(event.target)
+			) {
+				setSelectedColorIndex(null);
+			}
+		};
+
+		document.addEventListener('mousedown', handleOutsideClick);
+
+		return () => {
+			document.removeEventListener('mousedown', handleOutsideClick);
+		};
+	}, [selectedColorIndex]);
+
+	const isValidHex = (hex) => {
+		const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+		return hexRegex.test(hex);
+	};
+
+	const handleHexInputChange = (colorIndex, newHex) => {
+		setCustomColors((prevColors) => ({
+			...prevColors,
+			[colorIndex]: newHex,
+		}));
+	};
+
+	const handleHexInputBlur = (colorIndex, newHex) => {
+		if (isValidHex(newHex)) {
+			setCustomColors((prevColors) => ({
+				...prevColors,
+				[colorIndex]: newHex,
+			}));
+		} else {
+			setCustomColors((prevColors) => ({
+				...prevColors,
+				[colorIndex]: prevColors[colorIndex],
+			}));
+		}
+	};
+
+	const handleHexInputKeyDown = (event, colorIndex, newHex) => {
+		if (event.key === 'Enter') {
+			if (isValidHex(newHex)) {
+				setCustomColors((prevColors) => ({
+					...prevColors,
+					[colorIndex]: newHex,
+				}));
+			} else {
+				setCustomColors((prevColors) => ({
+					...prevColors,
+					[colorIndex]: prevColors[colorIndex],
+				}));
+			}
+		}
+	};
+
+	const handleRegenerate = () => {
+		if (jsonCanvas) {
+			convertToMermaid(jsonCanvas);
+		}
+	};
+
+	const handleRemoveFile = () => {
+		setFileName('');
+		setJsonCanvas(null);
+		setMermaidFlowchart('');
+		setIsFlowchartGenerated(false);
 	};
 
 	return (
 		<>
-			<div className="grid grid-rows-[auto,1fr,gap-y-0] w-full max-w-2xl px-4 py-12 items-center space-y-12">
-				<div className="flex flex-col items-center space-y-2">
-					<h1 className="text-2xl font-bold">JSON Canvas to Mermaid</h1>
-					<p className="text-sm text-gray-500 dark:text-gray-400">
-						Drag and drop a JSON Canvas file to convert it to Mermaid
-					</p>
-				</div>
-				<div
-					className="flex flex-col border border-gray-200 border-dashed rounded-lg dark:border-gray-800"
-					onDragOver={handleDragOver}
-					onDrop={handleDrop}
-				>
-					<div
-						className="grid w-full h-[200px] items-center text-center text-sm text-gray-500 dark:text-gray-400"
-						style={{
-							gridTemplateColumns: '1fr',
-						}}
-					>
-						{fileName ? (
-							<span className="flex items-center justify-center w-full space-x-2">
-								<FileIcon className="w-6 h-6" />
-								<span>{fileName}</span>
-							</span>
-						) : (
-							<span className="flex items-center justify-center w-full space-x-2">
-								<FileIcon className="w-6 h-6" />
-								<span>
-									Drag and drop your file here or{' '}
-									<Button
-										size="sm"
-										onClick={() => document.getElementById('fileInput').click()}
-									>
-										Browse
-									</Button>
-								</span>
-							</span>
-						)}
-					</div>
-					{fileError && <p className="text-red-500">{fileError}</p>}
-					<input
-						id="fileInput"
-						aria-label="File input"
-						className="sr-only"
-						type="file"
-						accept=".canvas"
-						onChange={handleFileUpload}
-					/>
-				</div>
-
-				<div className="flex justify-center space-x-4">
-					{Object.entries(customColors).map(([colorIndex, color]) => (
-						<div
-							key={colorIndex}
-							className="relative"
+			<div className="flex items-start justify-center min-h-screen">
+				<div className="grid grid-rows-[auto,1fr,gap-y-0] w-full max-w-2xl px-4 py-12 items-center space-y-12">
+					<div className="flex flex-col items-center space-y-2">
+						<h1 className="text-2xl font-bold">JSON Canvas to Mermaid</h1>
+						<p className="text-sm text-gray-500 dark:text-gray-400">
+							Drag and drop a JSON Canvas file to convert it to Mermaid
+						</p>
+						<a
+							href="https://github.com/alexwiench/JSON-Canvas-To-Mermaid"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-sm text-blue-500 hover:underline"
 						>
-							<div
-								className="w-8 h-8 rounded-full cursor-pointer"
-								style={{ backgroundColor: color }}
-								onClick={() => {
-									setSelectedColorIndex(colorIndex);
-								}}
-							></div>
-							<div
-								className="mt-1 text-xs text-center text-gray-500 cursor-pointer"
-								onClick={() => handleCopyHex(color)}
-							>
-								{color}
-							</div>
-							{selectedColorIndex === colorIndex && (
-								<div className="absolute left-0 z-10 top-10">
-									<div className="relative">
-										<HexColorPicker
-											color={color}
-											onChange={(newColor) => handleColorChange(colorIndex, newColor)}
-										/>
-										<button
-											className="absolute top-0 right-0 p-2 text-gray-500 hover:text-gray-700"
-											onClick={() => setSelectedColorIndex(null)}
+							GitHub Repository
+						</a>
+					</div>
+					<div
+						className={`flex flex-col border border-gray-200 border-dashed rounded-lg dark:border-gray-800 transition-all duration-500 ease-in-out ${
+							fileName ? 'h-16' : 'h-64'
+						}`}
+						onDragOver={handleDragOver}
+						onDrop={handleDrop}
+					>
+						<div
+							className={`grid w-full items-center text-center text-sm text-gray-500 dark:text-gray-400 transition-all duration-500 ease-in-out ${
+								fileName ? 'h-16' : 'h-64'
+							}`}
+							style={{
+								gridTemplateColumns: '1fr',
+							}}
+						>
+							{fileName ? (
+								<span className="flex items-center justify-between w-full px-4">
+									<span className="flex items-center space-x-2">
+										<FileIcon className="w-6 h-6" />
+										<span>{fileName}</span>
+									</span>
+									<button
+										className="text-gray-500 hover:text-gray-700 focus:outline-none"
+										onClick={handleRemoveFile}
+									>
+										<CloseIcon className="w-4 h-4" />
+									</button>
+								</span>
+							) : (
+								<span className="flex items-center justify-center w-full space-x-2">
+									<FileIcon className="w-6 h-6" />
+									<span>
+										Drag and drop your file here or{' '}
+										<Button
+											size="sm"
+											onClick={() => document.getElementById('fileInput').click()}
 										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												viewBox="0 0 20 20"
-												fill="currentColor"
-												className="w-4 h-4"
-											>
-												<path
-													fillRule="evenodd"
-													d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-													clipRule="evenodd"
-												/>
-											</svg>
-										</button>
-									</div>
-								</div>
+											Browse
+										</Button>
+									</span>
+								</span>
 							)}
 						</div>
-					))}
-				</div>
-
-				<div className="flex flex-col border border-gray-200 rounded-lg dark:border-gray-800">
-					<div
-						className="grid w-full p-4 text-sm text-gray-500 dark:text-gray-400"
-						style={{
-							gridTemplateColumns: '1fr',
-						}}
-					>
-						<div className="flex items-center justify-center w-full space-x-2">
-							<CodeIcon className="w-6 h-6" />
-							<pre className="w-full overflow-auto text-left">{mermaidFlowchart}</pre>
-						</div>
-						<button
-							className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
-							onClick={handleCopyClick}
-						>
-							{copySuccess ? 'Copied!' : 'Copy'}
-						</button>
+						{fileError && <p className="text-red-500">{fileError}</p>}
+						<input
+							id="fileInput"
+							aria-label="File input"
+							className="sr-only"
+							type="file"
+							accept=".canvas"
+							onChange={handleFileUpload}
+						/>
 					</div>
+
+					{/* color picker */}
+
+					<div className="flex flex-col items-center space-y-4">
+						<h2 className="text-lg font-bold">Color Overrides</h2>
+						<div className="flex justify-center space-x-4">
+							{/* ... (color picker section remains the same) */}
+
+							<div className="flex justify-center space-x-4">
+								{Object.entries(customColors).map(([colorIndex, color]) => (
+									<div
+										key={colorIndex}
+										className="flex flex-col items-center space-y-1"
+									>
+										<div
+											className="w-8 h-8 rounded-full cursor-pointer"
+											style={{ backgroundColor: color }}
+											onClick={() => {
+												setSelectedColorIndex(colorIndex);
+											}}
+										></div>
+										<input
+											type="text"
+											className="w-20 px-2 py-1 text-xs text-center text-gray-700 bg-white border border-gray-300 rounded"
+											value={color}
+											onChange={(e) => handleHexInputChange(colorIndex, e.target.value)}
+											onBlur={(e) => handleHexInputBlur(colorIndex, e.target.value)}
+											onKeyDown={(e) => handleHexInputKeyDown(e, colorIndex, e.target.value)}
+											maxLength={7}
+										/>
+										{selectedColorIndex === colorIndex && (
+											<div
+												ref={(el) => (colorPickerRefs.current[colorIndex] = el)}
+												className="absolute z-10 mt-10"
+											>
+												<div className="relative">
+													<HexColorPicker
+														color={color}
+														onChange={(newColor) => handleColorChange(colorIndex, newColor)}
+													/>
+													<button
+														className="absolute top-0 right-0 p-2 text-gray-500 hover:text-gray-700"
+														onClick={() => setSelectedColorIndex(null)}
+													>
+														<CloseIcon className="w-4 h-4" />
+													</button>
+												</div>
+											</div>
+										)}
+									</div>
+								))}
+							</div>
+						</div>
+					</div>
+
+					<div className="flex flex-col border border-gray-200 rounded-lg dark:border-gray-800">
+						<div className="relative w-full p-4 text-sm text-gray-500 transition-all duration-500 ease-in-out dark:text-gray-400">
+							{isFlowchartGenerated && fileName && (
+								<div className="flex items-center justify-between mb-2">
+									<div className="flex items-center space-x-2">
+										<CodeIcon className="w-6 h-6" />
+										<span>Output</span>
+									</div>
+
+									<button
+										className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+										onClick={handleCopyClick}
+									>
+										{copySuccess ? 'Copied!' : 'Copy'}
+									</button>
+								</div>
+							)}
+							<div className="flex items-center justify-center w-full space-x-2">
+								{isFlowchartGenerated && fileName ? (
+									<>
+										<div className="flex items-center justify-center w-full space-x-2">
+											<pre className="w-full overflow-auto text-left opacity-0 animate-fade-in">
+												{mermaidFlowchart}
+											</pre>
+										</div>
+									</>
+								) : fileName ? (
+									<div className="flex items-center justify-center w-full">
+										<button
+											className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+											onClick={handleRegenerate}
+										>
+											Regenerate Flowchart
+										</button>
+									</div>
+								) : (
+									<div className="flex items-center justify-center w-full">
+										<p>Please upload a file to generate the flowchart.</p>
+									</div>
+								)}
+							</div>
+						</div>
+					</div>
+					{/* <Button onClick={handleConvert}>Convert</Button>{' '} */}
 				</div>
-				{/* <Button onClick={handleConvert}>Convert</Button>{' '} */}
 			</div>
 		</>
 	);
