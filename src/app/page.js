@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import CloseIcon from '@/components/CloseIcon';
 import { useState, useEffect, useRef } from 'react';
 
+import mermaid from 'mermaid';
 import { HexColorPicker } from 'react-colorful';
 import generateMermaidFlowchart from 'json-canvas-to-mermaid';
 
@@ -26,7 +27,6 @@ export default function Home() {
 	const colorPickerRefs = useRef({});
 
 	const convertToMermaid = (jsonData) => {
-		// const hierarchicalData = buildJsonCanvasHierarchy(jsonData);
 		const mermaid = generateMermaidFlowchart(jsonData, customColors);
 		setMermaidFlowchart(mermaid);
 		setIsFlowchartGenerated(true);
@@ -169,16 +169,27 @@ export default function Home() {
 					<div className="flex flex-col items-center space-y-2">
 						<h1 className="text-2xl font-bold">JSON Canvas to Mermaid</h1>
 						<p className="text-sm text-gray-500 dark:text-gray-400">
-							Drag and drop a JSON Canvas file to convert it to Mermaid
+							Drag and drop a JSON Canvas file to convert it to Mermaid in your browser.
 						</p>
-						<a
-							href="https://github.com/alexwiench/JSON-Canvas-To-Mermaid"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="text-sm text-blue-500 hover:underline"
-						>
-							GitHub Repository
-						</a>
+						<div className="flex items-center justify-center gap-4">
+							<a
+								href="https://github.com/alexwiench/JSON-Canvas-To-Mermaid"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-sm text-blue-500 hover:underline"
+							>
+								Website Github
+							</a>
+
+							<a
+								href="https://github.com/alexwiench/JSON-Canvas-To-Mermaid"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-sm text-blue-500 hover:underline"
+							>
+								Package Github
+							</a>
+						</div>
 					</div>
 					<div
 						className={`flex flex-col border border-gray-200 border-dashed rounded-lg dark:border-gray-800 transition-all duration-500 ease-in-out ${
@@ -331,7 +342,20 @@ export default function Home() {
 							</div>
 						</div>
 					</div>
-					{/* <Button onClick={handleConvert}>Convert</Button>{' '} */}
+					{isFlowchartGenerated && fileName && (
+						<>
+							<div className="flex justify-center mt-4">
+								<a
+									href="https://mermaid.live"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-sm text-blue-500 hover:underline"
+								>
+									Try it on Mermaid Live
+								</a>
+							</div>
+						</>
+					)}
 				</div>
 			</div>
 		</>
