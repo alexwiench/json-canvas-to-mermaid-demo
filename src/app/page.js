@@ -168,12 +168,13 @@ export default function Home() {
 				<div className="grid grid-rows-[auto,1fr,gap-y-0] w-full max-w-2xl px-4 py-12 items-center space-y-12">
 					<div className="flex flex-col items-center space-y-2">
 						<h1 className="text-2xl font-bold">JSON Canvas to Mermaid</h1>
-						<p className="text-sm text-gray-500 dark:text-gray-400">
-							Drag and drop a JSON Canvas file to convert it to Mermaid in your browser.
+						<p className="text-sm text-gray-400">
+							Convert a JSON Canvas file to Mermaid in your browser.
 						</p>
+
 						<div className="flex items-center justify-center gap-4">
 							<a
-								href="https://github.com/alexwiench/JSON-Canvas-To-Mermaid"
+								href="https://github.com/alexwiench/json-canvas-to-mermaid-demo"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="text-sm text-blue-500 hover:underline"
@@ -182,12 +183,12 @@ export default function Home() {
 							</a>
 
 							<a
-								href="https://github.com/alexwiench/JSON-Canvas-To-Mermaid"
+								href="https://www.npmjs.com/package/json-canvas-to-mermaid"
 								target="_blank"
 								rel="noopener noreferrer"
 								className="text-sm text-blue-500 hover:underline"
 							>
-								Package Github
+								Check out the package on NPM!
 							</a>
 						</div>
 					</div>
@@ -351,7 +352,7 @@ export default function Home() {
 									rel="noopener noreferrer"
 									className="text-sm text-blue-500 hover:underline"
 								>
-									Try it on Mermaid Live
+									Try it in the Mermaid Live Editor
 								</a>
 							</div>
 						</>
