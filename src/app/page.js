@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import CloseIcon from '@/components/CloseIcon';
 import { useState, useEffect, useRef } from 'react';
-import Head from 'next/head';
 
 import mermaid from 'mermaid';
 import { HexColorPicker } from 'react-colorful';
@@ -165,17 +164,6 @@ export default function Home() {
 
 	return (
 		<>
-			{/* <Head>
-				<title>JSON Canvas to Mermaid</title>
-				<meta
-					name="description"
-					content="Easily convert JSON Canvas files to Mermaid in your browser."
-				/>
-				<meta
-					name="keywords"
-					content="JSON Canvas, Mermaid, ObsidianMD"
-				/>
-			</Head> */}
 			<div className="flex items-start justify-center min-h-screen">
 				<div className="grid grid-rows-[auto,1fr,gap-y-0] w-full max-w-2xl px-4 py-12 items-center space-y-12">
 					<div className="flex flex-col items-center space-y-2">
