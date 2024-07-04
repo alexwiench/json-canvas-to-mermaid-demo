@@ -6,8 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 
 import mermaid from 'mermaid';
 import { HexColorPicker } from 'react-colorful';
-import generateMermaidFlowchart from 'json-canvas-to-mermaid';
-
+import convertToMermaid from 'json-canvas-to-mermaid';
 export default function Home() {
 	const [jsonCanvas, setJsonCanvas] = useState(null);
 	const [mermaidFlowchart, setMermaidFlowchart] = useState('');
@@ -26,8 +25,8 @@ export default function Home() {
 	const [isFlowchartGenerated, setIsFlowchartGenerated] = useState(false);
 	const colorPickerRefs = useRef({});
 
-	const convertToMermaid = (jsonData) => {
-		const mermaid = generateMermaidFlowchart(jsonData, customColors);
+	const createFlowchart = (jsonData) => {
+		const mermaid = convertToMermaid(jsonData, customColors);
 		setMermaidFlowchart(mermaid);
 		setIsFlowchartGenerated(true);
 	};
@@ -42,7 +41,7 @@ export default function Home() {
 					const fileContent = e.target.result;
 					const jsonData = JSON.parse(fileContent);
 					setJsonCanvas(jsonData);
-					convertToMermaid(jsonData);
+					createFlowchart(jsonData);
 				};
 				reader.readAsText(file);
 			} else {
@@ -151,7 +150,7 @@ export default function Home() {
 
 	const handleRegenerate = () => {
 		if (jsonCanvas) {
-			convertToMermaid(jsonCanvas);
+			createFlowchart(jsonCanvas);
 		}
 	};
 
